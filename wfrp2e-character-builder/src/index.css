@@ -1,0 +1,71 @@
+/* Basic Reset and WFRP2e Gothic Theme */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  /* WFRP2e Gothic Colors */
+  --color-parchment: #f4f1e8;
+  --color-aged-paper: #e8e0d1;
+  --color-blood-red: #8b1538;
+  --color-dark-red: #6b1028;
+  --color-iron-gray: #4a5568;
+  --color-dark-iron: #2d3748;
+  --color-bone-white: #faf7f0;
+  --color-shadow-black: #1a202c;
+  
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+}
+
+body {
+  background-color: var(--color-parchment);
+  color: var(--color-shadow-black);
+  font-family: inherit;
+  min-height: 100vh;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+/* Button Styles */
+.btn-primary {
+  background-color: var(--color-blood-red);
+  color: white;
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-dark-red);
+}
+
+/* Card Styles */
+.card-gothic {
+  background: linear-gradient(135deg, var(--color-aged-paper), var(--color-parchment));
+  border-radius: 8px;
+  border: 2px solid var(--color-blood-red);
+  padding: 24px;
+  margin: 20px 0;
+}
+
+.text-heading {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-shadow-black);
+  margin-bottom: 16px;
+}
+
+.text-gothic {
+  font-weight: 700;
+  color: var(--color-blood-red);
+}
