@@ -1,3 +1,6 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 /* Basic Reset and WFRP2e Gothic Theme */
 * {
   margin: 0;
