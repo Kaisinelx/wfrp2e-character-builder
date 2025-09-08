@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 /* Basic Reset and WFRP2e Gothic Theme */
 * {
   margin: 0;
@@ -8,7 +6,7 @@
   box-sizing: border-box;
 }
 
-:root {
+:root { /* ... *
   /* WFRP2e Gothic Colors */
   --color-parchment: #f4f1e8;
   --color-aged-paper: #e8e0d1;

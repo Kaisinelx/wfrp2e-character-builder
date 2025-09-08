@@ -29,8 +29,6 @@ export function validateChoices(career: Career, cs: CareerChoices): string[] {
     if (chosen.length !== g.pick) {
       errs.push(`Pick exactly ${g.pick} skill(s) in group ${i + 1}.`);
     }
-    
-    // Validate chosen options exist in the group
     chosen.forEach(choice => {
       const exists = g.options.some((opt: Choice) => 
         opt.name === choice.name && opt.spec === choice.spec
@@ -46,8 +44,6 @@ export function validateChoices(career: Career, cs: CareerChoices): string[] {
     if (chosen.length !== g.pick) {
       errs.push(`Pick exactly ${g.pick} talent(s) in group ${i + 1}.`);
     }
-    
-    // Validate chosen options exist in the group
     chosen.forEach(choice => {
       const exists = g.options.some((opt: Choice) => 
         opt.name === choice.name && opt.spec === choice.spec
@@ -74,76 +70,83 @@ export function flattenGrants(gr: EntryGrant, cs: CareerChoices) {
   };
 }
 
+/* ---------- NEW HELPERS FOR SAFETY & FLOW ---------- */
+
+// Returns true only if every group has exactly its pick count selected
+export function areEntryChoicesComplete(career: Career, cs: CareerChoices): boolean {
+  const skillOk = (career.skillAdvances.groups ?? []).every((g, i) =>
+    (cs.skillChoices[i]?.length || 0) === g.pick
+  );
+  const talentOk = (career.talentAdvances.groups ?? []).every((g, i) =>
+    (cs.talentChoices[i]?.length || 0) === g.pick
+  );
+  return skillOk && talentOk;
+}
+
+// Combines validation + flatten in one safe step
+export function safeFlattenIfValid(career: Career, cs: CareerChoices) {
+  const errors = validateChoices(career, cs);
+  if (errors.length) {
+    return { errors, grantSkills: [], grantTalents: [] };
+  }
+  const { grantSkills, grantTalents } = flattenGrants(getEntryGrants(career), cs);
+  return { errors: [], grantSkills, grantTalents };
+}
+
+/* ---------- BALANCE & CONSISTENCY CHECKS (unchanged) ---------- */
+
 export function validateCareerBalance(career: Career): string[] {
   const warnings: string[] = [];
   
-  // Calculate total skills (required + all possible choices)
   const requiredSkills = career.skillAdvances.required.length;
   const totalChoiceSkills = career.skillAdvances.groups?.reduce((sum: number, g: PickGroup) => sum + g.pick, 0) ?? 0;
   const totalSkills = requiredSkills + totalChoiceSkills;
   
-  // Calculate total talents
   const requiredTalents = career.talentAdvances.required.length;
   const totalChoiceTalents = career.talentAdvances.groups?.reduce((sum: number, g: PickGroup) => sum + g.pick, 0) ?? 0;
   const totalTalents = requiredTalents + totalChoiceTalents;
   
-  // Check talent count (Basic careers usually have 4-6 core talents)
   if (career.type === 'basic' && totalTalents > 6) {
     warnings.push(`${career.name}: Has ${totalTalents} total talents (Basic careers usually have 4-6)`);
   }
-  
-  // Check skill count (Basic careers usually have 6-8 skills)
   if (career.type === 'basic' && totalSkills > 8) {
     warnings.push(`${career.name}: Has ${totalSkills} total skills (Basic careers usually have 6-8)`);
   }
-  
-  // Advanced careers typically have more
   if (career.type === 'advanced' && totalTalents < 3) {
     warnings.push(`${career.name}: Has only ${totalTalents} talents (Advanced careers usually have 3+)`);
   }
-  
-  // Check magic consistency
   if (career.isMagicalCareer && !career.magicFloor) {
     warnings.push(`${career.name}: Marked as magical but has no magicFloor`);
   }
-  
   if (!career.isMagicalCareer && career.magicFloor) {
     warnings.push(`${career.name}: Has magicFloor but not marked as magical`);
   }
-  
-  // Check for empty choice groups
   career.skillAdvances.groups?.forEach((group: PickGroup, index: number) => {
     if (group.options.length < group.pick) {
       warnings.push(`${career.name}: Skill group ${index + 1} requires ${group.pick} picks but only has ${group.options.length} options`);
     }
   });
-  
   career.talentAdvances.groups?.forEach((group: PickGroup, index: number) => {
     if (group.options.length < group.pick) {
       warnings.push(`${career.name}: Talent group ${index + 1} requires ${group.pick} picks but only has ${group.options.length} options`);
     }
   });
-  
   return warnings;
 }
 
 export function checkCareerClassConsistency(careers: Career[]): string[] {
   const validClasses: CareerClass[] = ['Academic', 'Ranger', 'Warrior', 'Criminal', 'Commoner'];
   const warnings: string[] = [];
-  
   careers.forEach(career => {
     if (!validClasses.includes(career.careerClass)) {
       warnings.push(`${career.name}: Invalid career class '${career.careerClass}'`);
     }
   });
-  
   return warnings;
 }
 
 export function validateChoiceGroups(career: Career): string[] {
   const errors: string[] = [];
-  
-  // Check skill groups
   career.skillAdvances.groups?.forEach((group: PickGroup, index: number) => {
     if (group.pick <= 0) {
       errors.push(`${career.name}: Skill group ${index + 1} has invalid pick count: ${group.pick}`);
@@ -155,8 +158,6 @@ export function validateChoiceGroups(career: Career): string[] {
       errors.push(`${career.name}: Skill group ${index + 1} has no options`);
     }
   });
-  
-  // Check talent groups
   career.talentAdvances.groups?.forEach((group: PickGroup, index: number) => {
     if (group.pick <= 0) {
       errors.push(`${career.name}: Talent group ${index + 1} has invalid pick count: ${group.pick}`);
@@ -168,20 +169,16 @@ export function validateChoiceGroups(career: Career): string[] {
       errors.push(`${career.name}: Talent group ${index + 1} has no options`);
     }
   });
-  
   return errors;
 }
 
 export function validateAllCareers(careers: Career[]): { errors: string[]; warnings: string[] } {
   const errors: string[] = [];
   const warnings: string[] = [];
-  
   careers.forEach(career => {
     errors.push(...validateChoiceGroups(career));
     warnings.push(...validateCareerBalance(career));
   });
-  
   warnings.push(...checkCareerClassConsistency(careers));
-  
   return { errors, warnings };
 }
