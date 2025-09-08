@@ -1,4 +1,4 @@
-import type { Career, Choice, CareerClass, PickGroup } from '../data/basic_careers/_types';
+import type { Career, Choice, PickGroup } from '../data/basic_careers/_types';
 
 export type CareerChoices = {
   skillChoices: Record<number, Choice[]>;  // index into skill groups
@@ -83,7 +83,7 @@ function checkGroupDuplicates(
 }
 
 // Check for duplicates across all groups
-function checkCrossGroupDuplicates(cs: CareerChoices): ValidationIssue[] {
+export function checkCrossGroupDuplicates(cs: CareerChoices): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
   const skillMap = new Map<string, { groupIndex: number; choice: Choice }[]>();
   const talentMap = new Map<string, { groupIndex: number; choice: Choice }[]>();
@@ -109,7 +109,7 @@ function checkCrossGroupDuplicates(cs: CareerChoices): ValidationIssue[] {
   });
   
   // Report cross-group duplicates
-  skillMap.forEach((occurrences, key) => {
+  skillMap.forEach((occurrences) => {
     if (occurrences.length > 1) {
       const choice = occurrences[0].choice;
       const groups = occurrences.map(o => o.groupIndex + 1).join(', ');
@@ -124,7 +124,7 @@ function checkCrossGroupDuplicates(cs: CareerChoices): ValidationIssue[] {
     }
   });
   
-  talentMap.forEach((occurrences, key) => {
+  talentMap.forEach((occurrences) => {
     if (occurrences.length > 1) {
       const choice = occurrences[0].choice;
       const groups = occurrences.map(o => o.groupIndex + 1).join(', ');
