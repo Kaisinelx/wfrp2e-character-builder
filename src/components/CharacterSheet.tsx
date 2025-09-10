@@ -83,7 +83,7 @@ export default function CharacterSheet() {
               {/* Race choice groups: show "Choose N: A / B / C" */}
               {(race?.skills?.choices ?? []).map((group, i) => (
                 <li key={`race-skill-choice-${i}`} className="text-sm text-green-700">
-                  Choose {group.pick}:{' '}
+                  Choose {group.requiredCount}:{' '}
                   {(group.options ?? [])
                     .map(opt => opt.spec ? `${opt.name} (${opt.spec})` : opt.name)
                     .join(' / ')}

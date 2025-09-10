@@ -10,11 +10,12 @@ export type CharKey = "WS"|"BS"|"S"|"T"|"Ag"|"Int"|"WP"|"Fel";
 
 export interface Choice { name: string; spec?: string }
 
-// Groups represent "pick N from these options" (e.g., OR = pick: 1)
-export interface PickGroup {
-  pick: number;            // 1 for simple OR, >1 for "pick any two…"
-  options: Choice[];
-}
+// Groups represent "pick N from these options" (e.g., OR = requiredCount: 1)
+export type PickGroup<TRef = Choice> = {
+  groupId: string;
+  requiredCount: number;   // 1 for simple OR, >1 for "pick any two…"
+  options: TRef[];
+};
 
 export interface SkillBlock {
   required: Choice[];      // granted automatically at career entry

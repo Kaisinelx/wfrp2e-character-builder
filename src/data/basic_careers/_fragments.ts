@@ -4,7 +4,20 @@ import type { Choice, PickGroup } from "./_types";
 export const SKILL = (name: string, spec?: string): Choice => ({ name, spec });
 export const TALENT = (name: string, spec?: string): Choice => ({ name, spec });
 
-export const OR = (options: Choice[], pick = 1): PickGroup => ({ options, pick });
+export const OR = (options: Choice[], requiredCount = 1): PickGroup => {
+  // Generate a stable groupId based on the options
+  const optionsKey = options
+    .map(opt => `${opt.name}${opt.spec ? `:${opt.spec}` : ''}`)
+    .sort()
+    .join('|');
+  const groupId = `or_${optionsKey.toLowerCase().replace(/[^a-z0-9|]/g, '_')}_${requiredCount}`;
+  
+  return { 
+    groupId, 
+    requiredCount, 
+    options 
+  };
+};
 
 // You can define tiny "snippets" to reuse, but don't compose them invisibly.
 // For example, a frequently reused OR:
@@ -12,7 +25,7 @@ export const OR_AnimalCare_or_Charm = OR([SKILL("Animal Care"), SKILL("Charm")],
 
 // ✅ Added validation helpers
 export const validatePickGroup = (g: PickGroup): boolean =>
-  g.pick > 0 && g.pick <= g.options.length;
+  g.requiredCount > 0 && g.requiredCount <= g.options.length;
 
 // ✅ Added common WFRP patterns
 export const COMMON_KNOWLEDGE = (region: string) => SKILL("Common Knowledge", region);
