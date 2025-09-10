@@ -148,22 +148,13 @@ export function validateChoices(career: Career, cs: CareerChoices): ValidationIs
     const chosen = cs.skillChoices[g.groupId] ?? [];
     
     // Check pick count
-<<<<<<< HEAD
     if (chosen.length !== g.requiredCount) { // ✅ Use requiredCount
-=======
-    if (chosen.length !== g.requiredCount) {
->>>>>>> 320531d7fc08e48764cd89301712d72962349b0c
       const availableChoices = g.options.map(opt => `${opt.name}${opt.spec ? ` (${opt.spec})` : ''}`);
       issues.push({
         code: 'WRONG_COUNT',
         groupId: g.groupId, // ✅ Use actual groupId
         groupType: 'skill',
-<<<<<<< HEAD
         message: `Skills Group ${g.groupId}: Pick exactly ${g.requiredCount} skill(s). Currently selected: ${chosen.length}`,
-=======
-        groupIndex: i,
-        message: `Skills Group ${i + 1}: Pick exactly ${g.requiredCount} skill(s). Currently selected: ${chosen.length}`,
->>>>>>> 320531d7fc08e48764cd89301712d72962349b0c
         expected: g.requiredCount,
         actual: chosen.length,
         availableChoices
@@ -195,22 +186,13 @@ export function validateChoices(career: Career, cs: CareerChoices): ValidationIs
     const chosen = cs.talentChoices[g.groupId] ?? [];
     
     // Check pick count
-<<<<<<< HEAD
     if (chosen.length !== g.requiredCount) { // ✅ Use requiredCount
-=======
-    if (chosen.length !== g.requiredCount) {
->>>>>>> 320531d7fc08e48764cd89301712d72962349b0c
       const availableChoices = g.options.map(opt => `${opt.name}${opt.spec ? ` (${opt.spec})` : ''}`);
       issues.push({
         code: 'WRONG_COUNT',
         groupId: g.groupId, // ✅ Use actual groupId
         groupType: 'talent',
-<<<<<<< HEAD
         message: `Talents Group ${g.groupId}: Pick exactly ${g.requiredCount} talent(s). Currently selected: ${chosen.length}`,
-=======
-        groupIndex: i,
-        message: `Talents Group ${i + 1}: Pick exactly ${g.requiredCount} talent(s). Currently selected: ${chosen.length}`,
->>>>>>> 320531d7fc08e48764cd89301712d72962349b0c
         expected: g.requiredCount,
         actual: chosen.length,
         availableChoices
@@ -256,7 +238,6 @@ export function flattenGrants(gr: EntryGrant, cs: CareerChoices) {
   };
 }
 
-<<<<<<< HEAD
 // ✅ Returns true only if every group has exactly its requiredCount selected
 export function areEntryChoicesComplete(career: Career, cs: CareerChoices): boolean {
   const skillOk = (career.skillAdvances.groups ?? []).every((g) =>
@@ -264,15 +245,6 @@ export function areEntryChoicesComplete(career: Career, cs: CareerChoices): bool
   );
   const talentOk = (career.talentAdvances.groups ?? []).every((g) =>
     (cs.talentChoices[g.groupId]?.length || 0) === g.requiredCount
-=======
-// Returns true only if every group has exactly its requiredCount selected
-export function areEntryChoicesComplete(career: Career, cs: CareerChoices): boolean {
-  const skillOk = (career.skillAdvances.groups ?? []).every((g, i) =>
-    (cs.skillChoices[i]?.length || 0) === g.requiredCount
-  );
-  const talentOk = (career.talentAdvances.groups ?? []).every((g, i) =>
-    (cs.talentChoices[i]?.length || 0) === g.requiredCount
->>>>>>> 320531d7fc08e48764cd89301712d72962349b0c
   );
   return skillOk && talentOk;
 }
@@ -365,19 +337,11 @@ export function validateCareerBalance(career: Career): string[] {
   const warnings: string[] = [];
   
   const requiredSkills = career.skillAdvances.required?.length || 0;
-<<<<<<< HEAD
   const totalChoiceSkills = career.skillAdvances.groups?.reduce((sum: number, g: PickGroup) => sum + g.requiredCount, 0) ?? 0; // ✅ Use requiredCount
   const totalSkills = requiredSkills + totalChoiceSkills;
   
   const requiredTalents = career.talentAdvances.required?.length || 0;
   const totalChoiceTalents = career.talentAdvances.groups?.reduce((sum: number, g: PickGroup) => sum + g.requiredCount, 0) ?? 0; // ✅ Use requiredCount
-=======
-  const totalChoiceSkills = career.skillAdvances.groups?.reduce((sum: number, g: PickGroup) => sum + g.requiredCount, 0) ?? 0;
-  const totalSkills = requiredSkills + totalChoiceSkills;
-  
-  const requiredTalents = career.talentAdvances.required?.length || 0;
-  const totalChoiceTalents = career.talentAdvances.groups?.reduce((sum: number, g: PickGroup) => sum + g.requiredCount, 0) ?? 0;
->>>>>>> 320531d7fc08e48764cd89301712d72962349b0c
   const totalTalents = requiredTalents + totalChoiceTalents;
   
   if (career.type === 'basic' && totalTalents > 6) {
@@ -391,7 +355,6 @@ export function validateCareerBalance(career: Career): string[] {
   }
   
   // Check for data integrity issues
-<<<<<<< HEAD
   career.skillAdvances.groups?.forEach((group: PickGroup) => {
     if (group.options.length < group.requiredCount) { // ✅ Use requiredCount
       warnings.push(`${career.name}: Skill group ${group.groupId} requires ${group.requiredCount} picks but only has ${group.options.length} options`);
@@ -400,16 +363,6 @@ export function validateCareerBalance(career: Career): string[] {
   career.talentAdvances.groups?.forEach((group: PickGroup) => {
     if (group.options.length < group.requiredCount) { // ✅ Use requiredCount
       warnings.push(`${career.name}: Talent group ${group.groupId} requires ${group.requiredCount} picks but only has ${group.options.length} options`);
-=======
-  career.skillAdvances.groups?.forEach((group: PickGroup, index: number) => {
-    if (group.options.length < group.requiredCount) {
-      warnings.push(`${career.name}: Skill group ${index + 1} requires ${group.requiredCount} picks but only has ${group.options.length} options`);
-    }
-  });
-  career.talentAdvances.groups?.forEach((group: PickGroup, index: number) => {
-    if (group.options.length < group.requiredCount) {
-      warnings.push(`${career.name}: Talent group ${index + 1} requires ${group.requiredCount} picks but only has ${group.options.length} options`);
->>>>>>> 320531d7fc08e48764cd89301712d72962349b0c
     }
   });
   
@@ -423,29 +376,17 @@ export function validateAllCareers(careers: Career[]): { career: string; errors:
     const warnings = validateCareerBalance(career);
     
     // Check for structural issues
-<<<<<<< HEAD
     career.skillAdvances.groups?.forEach((group: PickGroup) => {
       if (group.requiredCount <= 0) { // ✅ Use requiredCount
         errors.push(`Skill group ${group.groupId} has invalid requiredCount: ${group.requiredCount}`);
-=======
-    career.skillAdvances.groups?.forEach((group: PickGroup, index: number) => {
-      if (group.requiredCount <= 0) {
-        errors.push(`Skill group ${index + 1} has invalid requiredCount: ${group.requiredCount}`);
->>>>>>> 320531d7fc08e48764cd89301712d72962349b0c
       }
       if (group.options.length === 0) {
         errors.push(`Skill group ${group.groupId} has no options`);
       }
     });
-<<<<<<< HEAD
     career.talentAdvances.groups?.forEach((group: PickGroup) => {
       if (group.requiredCount <= 0) { // ✅ Use requiredCount
         errors.push(`Talent group ${group.groupId} has invalid requiredCount: ${group.requiredCount}`);
-=======
-    career.talentAdvances.groups?.forEach((group: PickGroup, index: number) => {
-      if (group.requiredCount <= 0) {
-        errors.push(`Talent group ${index + 1} has invalid requiredCount: ${group.requiredCount}`);
->>>>>>> 320531d7fc08e48764cd89301712d72962349b0c
       }
       if (group.options.length === 0) {
         errors.push(`Talent group ${group.groupId} has no options`);
