@@ -19,7 +19,7 @@ export const CLASS_ACADEMIC: Career[] = [
         SKILL("Perception"),
       ],
       groups: [
-        OR([SKILL("Animal Care"), SKILL("Charm")], 1), // your example
+        OR("animal_care_or_charm", [SKILL("Animal Care"), SKILL("Charm")], 1), // your example
       ],
     },
     talentAdvances: {
@@ -28,7 +28,7 @@ export const CLASS_ACADEMIC: Career[] = [
         TALENT("Public Speaking"),
       ],
       groups: [
-        OR([TALENT("Seasoned Traveller"), TALENT("Suave")], 1), // pick one
+        OR("seasoned_traveller_or_suave", [TALENT("Seasoned Traveller"), TALENT("Suave")], 1), // pick one
       ],
     },
   },

@@ -160,15 +160,15 @@ export function validateChoices(career: Career, cs: CareerChoices): ValidationIs
     const groupId = getGroupId('skill', i);
     
     // Check pick count
-    if (chosen.length !== g.pick) {
+    if (chosen.length !== g.requiredCount) {
       const availableChoices = g.options.map(opt => `${opt.name}${opt.spec ? ` (${opt.spec})` : ''}`);
       issues.push({
         code: 'WRONG_COUNT',
         groupId,
         groupType: 'skill',
         groupIndex: i,
-        message: `Skills Group ${i + 1}: Pick exactly ${g.pick} skill(s). Currently selected: ${chosen.length}`,
-        expected: g.pick,
+        message: `Skills Group ${i + 1}: Pick exactly ${g.requiredCount} skill(s). Currently selected: ${chosen.length}`,
+        expected: g.requiredCount,
         actual: chosen.length,
         availableChoices
       });
@@ -201,15 +201,15 @@ export function validateChoices(career: Career, cs: CareerChoices): ValidationIs
     const groupId = getGroupId('talent', i);
     
     // Check pick count
-    if (chosen.length !== g.pick) {
+    if (chosen.length !== g.requiredCount) {
       const availableChoices = g.options.map(opt => `${opt.name}${opt.spec ? ` (${opt.spec})` : ''}`);
       issues.push({
         code: 'WRONG_COUNT',
         groupId,
         groupType: 'talent',
         groupIndex: i,
-        message: `Talents Group ${i + 1}: Pick exactly ${g.pick} talent(s). Currently selected: ${chosen.length}`,
-        expected: g.pick,
+        message: `Talents Group ${i + 1}: Pick exactly ${g.requiredCount} talent(s). Currently selected: ${chosen.length}`,
+        expected: g.requiredCount,
         actual: chosen.length,
         availableChoices
       });
@@ -255,13 +255,13 @@ export function flattenGrants(gr: EntryGrant, cs: CareerChoices) {
   };
 }
 
-// Returns true only if every group has exactly its pick count selected
+// Returns true only if every group has exactly its requiredCount selected
 export function areEntryChoicesComplete(career: Career, cs: CareerChoices): boolean {
   const skillOk = (career.skillAdvances.groups ?? []).every((g, i) =>
-    (cs.skillChoices[i]?.length || 0) === g.pick
+    (cs.skillChoices[i]?.length || 0) === g.requiredCount
   );
   const talentOk = (career.talentAdvances.groups ?? []).every((g, i) =>
-    (cs.talentChoices[i]?.length || 0) === g.pick
+    (cs.talentChoices[i]?.length || 0) === g.requiredCount
   );
   return skillOk && talentOk;
 }
@@ -355,11 +355,11 @@ export function validateCareerBalance(career: Career): string[] {
   const warnings: string[] = [];
   
   const requiredSkills = career.skillAdvances.required?.length || 0;
-  const totalChoiceSkills = career.skillAdvances.groups?.reduce((sum: number, g: PickGroup) => sum + g.pick, 0) ?? 0;
+  const totalChoiceSkills = career.skillAdvances.groups?.reduce((sum: number, g: PickGroup) => sum + g.requiredCount, 0) ?? 0;
   const totalSkills = requiredSkills + totalChoiceSkills;
   
   const requiredTalents = career.talentAdvances.required?.length || 0;
-  const totalChoiceTalents = career.talentAdvances.groups?.reduce((sum: number, g: PickGroup) => sum + g.pick, 0) ?? 0;
+  const totalChoiceTalents = career.talentAdvances.groups?.reduce((sum: number, g: PickGroup) => sum + g.requiredCount, 0) ?? 0;
   const totalTalents = requiredTalents + totalChoiceTalents;
   
   if (career.type === 'basic' && totalTalents > 6) {
@@ -374,13 +374,13 @@ export function validateCareerBalance(career: Career): string[] {
   
   // Check for data integrity issues
   career.skillAdvances.groups?.forEach((group: PickGroup, index: number) => {
-    if (group.options.length < group.pick) {
-      warnings.push(`${career.name}: Skill group ${index + 1} requires ${group.pick} picks but only has ${group.options.length} options`);
+    if (group.options.length < group.requiredCount) {
+      warnings.push(`${career.name}: Skill group ${index + 1} requires ${group.requiredCount} picks but only has ${group.options.length} options`);
     }
   });
   career.talentAdvances.groups?.forEach((group: PickGroup, index: number) => {
-    if (group.options.length < group.pick) {
-      warnings.push(`${career.name}: Talent group ${index + 1} requires ${group.pick} picks but only has ${group.options.length} options`);
+    if (group.options.length < group.requiredCount) {
+      warnings.push(`${career.name}: Talent group ${index + 1} requires ${group.requiredCount} picks but only has ${group.options.length} options`);
     }
   });
   
@@ -395,16 +395,16 @@ export function validateAllCareers(careers: Career[]): { career: string; errors:
     
     // Check for structural issues
     career.skillAdvances.groups?.forEach((group: PickGroup, index: number) => {
-      if (group.pick <= 0) {
-        errors.push(`Skill group ${index + 1} has invalid pick count: ${group.pick}`);
+      if (group.requiredCount <= 0) {
+        errors.push(`Skill group ${index + 1} has invalid requiredCount: ${group.requiredCount}`);
       }
       if (group.options.length === 0) {
         errors.push(`Skill group ${index + 1} has no options`);
       }
     });
     career.talentAdvances.groups?.forEach((group: PickGroup, index: number) => {
-      if (group.pick <= 0) {
-        errors.push(`Talent group ${index + 1} has invalid pick count: ${group.pick}`);
+      if (group.requiredCount <= 0) {
+        errors.push(`Talent group ${index + 1} has invalid requiredCount: ${group.requiredCount}`);
       }
       if (group.options.length === 0) {
         errors.push(`Talent group ${index + 1} has no options`);
