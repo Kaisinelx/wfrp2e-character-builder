@@ -1,4 +1,4 @@
-import type { Career, Choice, CareerClass, PickGroup } from '../data/basic_careers/_types';
+import type { Career, Choice, PickGroup } from '../data/basic_careers/_types';
 
 export type CareerChoices = {
   skillChoices: Record<number, Choice[]>;  // index into skill groups
@@ -83,7 +83,7 @@ function checkGroupDuplicates(
 }
 
 // Check for duplicates across all groups
-function checkCrossGroupDuplicates(cs: CareerChoices): ValidationIssue[] {
+export function checkCrossGroupDuplicates(cs: CareerChoices): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
   const skillMap = new Map<string, { groupIndex: number; choice: Choice }[]>();
   const talentMap = new Map<string, { groupIndex: number; choice: Choice }[]>();
@@ -92,9 +92,9 @@ function checkCrossGroupDuplicates(cs: CareerChoices): ValidationIssue[] {
   Object.entries(cs.skillChoices).forEach(([groupIndex, choices]) => {
     const idx = Number(groupIndex);
     choices.forEach(choice => {
-      const key = refKey(choice);
-      if (!skillMap.has(key)) skillMap.set(key, []);
-      skillMap.get(key)!.push({ groupIndex: idx, choice });
+      const choiceKey = refKey(choice);
+      if (!skillMap.has(choiceKey)) skillMap.set(choiceKey, []);
+      skillMap.get(choiceKey)!.push({ groupIndex: idx, choice });
     });
   });
   
@@ -102,14 +102,14 @@ function checkCrossGroupDuplicates(cs: CareerChoices): ValidationIssue[] {
   Object.entries(cs.talentChoices).forEach(([groupIndex, choices]) => {
     const idx = Number(groupIndex);
     choices.forEach(choice => {
-      const key = refKey(choice);
-      if (!talentMap.has(key)) talentMap.set(key, []);
-      talentMap.get(key)!.push({ groupIndex: idx, choice });
+      const choiceKey = refKey(choice);
+      if (!talentMap.has(choiceKey)) talentMap.set(choiceKey, []);
+      talentMap.get(choiceKey)!.push({ groupIndex: idx, choice });
     });
   });
   
   // Report cross-group duplicates
-  skillMap.forEach((occurrences, key) => {
+  skillMap.forEach((occurrences) => {
     if (occurrences.length > 1) {
       const choice = occurrences[0].choice;
       const groups = occurrences.map(o => o.groupIndex + 1).join(', ');
@@ -124,7 +124,7 @@ function checkCrossGroupDuplicates(cs: CareerChoices): ValidationIssue[] {
     }
   });
   
-  talentMap.forEach((occurrences, key) => {
+  talentMap.forEach((occurrences) => {
     if (occurrences.length > 1) {
       const choice = occurrences[0].choice;
       const groups = occurrences.map(o => o.groupIndex + 1).join(', ');
@@ -286,7 +286,7 @@ export function safeFlattenIfValid(career: Career, cs: CareerChoices): Validatio
 }
 
 // Non-stackable talent enforcement (add your non-stackable talent list here)
-const NON_STACKABLE_TALENTS = new Set([
+const NON_STACKABLE_TALENTS = new Set<string>([
   // Add talent names that should not be selected multiple times
   // Example: 'ambidextrous', 'fearless', etc.
 ]);

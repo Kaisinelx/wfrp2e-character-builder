@@ -1,12 +1,47 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Character, CharacterStats } from '../types/wfrp';
-import { v4 as uuidv4 } from 'uuid';
+
+// Define the types directly since they're not in wfrp.ts
+interface CharacterStats {
+  WS: number;
+  BS: number;
+  S: number;
+  T: number;
+  Ag: number;
+  Int: number;
+  WP: number;
+  Fel: number;
+  attacks: number;
+  wounds: number;
+  strengthBonus: number;
+  toughnessBonus: number;
+  movement: number;
+  magic: number;
+  insanityPoints: number;
+  fate: number;
+}
+
+interface Character {
+  id: string;
+  name: string;
+  race: string;
+  currentCareer: string;
+  stats: CharacterStats;
+  skills: string[];
+  talents: string[];
+  trappings: string[];
+  experience: {
+    total: number;
+    spent: number;
+    available: number;
+  };
+  description: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
 interface CharacterState {
-  // Current character being built/edited
   currentCharacter: Partial<Character>;
-  // List of saved characters
   savedCharacters: Character[];
   
   // Actions
@@ -24,20 +59,23 @@ interface CharacterState {
   resetCurrentCharacter: () => void;
 }
 
+// Simple ID generator (replaces uuid dependency)
+const generateId = () => Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
 const initialCharacter = (): Partial<Character> => ({
-  id: uuidv4(),
+  id: generateId(),
   name: '',
   race: '',
   currentCareer: '',
   stats: {
-    weaponSkill: 0,
-    ballisticSkill: 0,
-    strength: 0,
-    toughness: 0,
-    agility: 0,
-    intelligence: 0,
-    willPower: 0,
-    fellowship: 0,
+    WS: 0,
+    BS: 0,
+    S: 0,
+    T: 0,
+    Ag: 0,
+    Int: 0,
+    WP: 0,
+    Fel: 0,
     attacks: 1,
     wounds: 0,
     strengthBonus: 0,
@@ -93,8 +131,8 @@ export const useCharacterStore = create<CharacterState>()(
               ...state.currentCharacter.stats!,
               [stat]: value,
               // Auto-calculate bonuses
-              strengthBonus: stat === 'strength' ? Math.floor((value - 10) / 10) : state.currentCharacter.stats!.strengthBonus,
-              toughnessBonus: stat === 'toughness' ? Math.floor((value - 10) / 10) : state.currentCharacter.stats!.toughnessBonus,
+              strengthBonus: stat === 'S' ? Math.floor(value / 10) : state.currentCharacter.stats!.strengthBonus,
+              toughnessBonus: stat === 'T' ? Math.floor(value / 10) : state.currentCharacter.stats!.toughnessBonus,
             },
             updatedAt: new Date().toISOString(),
           },
@@ -113,7 +151,7 @@ export const useCharacterStore = create<CharacterState>()(
         set((state) => ({
           currentCharacter: {
             ...state.currentCharacter,
-            skills: (state.currentCharacter.skills || []).filter(s => s !== skill),
+            skills: (state.currentCharacter.skills || []).filter((s: string) => s !== skill),
             updatedAt: new Date().toISOString(),
           },
         })),
@@ -131,7 +169,7 @@ export const useCharacterStore = create<CharacterState>()(
         set((state) => ({
           currentCharacter: {
             ...state.currentCharacter,
-            talents: (state.currentCharacter.talents || []).filter(t => t !== talent),
+            talents: (state.currentCharacter.talents || []).filter((t: string) => t !== talent),
             updatedAt: new Date().toISOString(),
           },
         })),
