@@ -16,18 +16,18 @@ export const CLASS_CRIMINAL: (BasicCareer | AdvancedCareer)[] = [
         SKILL("Silent Move"),
       ],
       groups: [
-        OR([SKILL("Charm"), SKILL("Scale Sheer Surface")], 1),
-        OR([SKILL("Evaluate"), SKILL("Disguise")], 1),
-        OR([SKILL("Gamble"), SKILL("Pick Lock")], 1),
-        OR([SKILL("Read/Write"), SKILL("Sleight of Hand")], 1),
-        OR([SKILL("Secret Language", "Thieves' Tongue"), SKILL("Secret Signs", "Thief")], 1),
+        OR("charm_or_scale_sheer_surface", [SKILL("Charm"), SKILL("Scale Sheer Surface")], 1),
+        OR("evaluate_or_disguise", [SKILL("Evaluate"), SKILL("Disguise")], 1),
+        OR("gamble_or_pick_lock", [SKILL("Gamble"), SKILL("Pick Lock")], 1),
+        OR("read_write_or_sleight_of_hand", [SKILL("Read/Write"), SKILL("Sleight of Hand")], 1),
+        OR("secret_language_or_secret_signs", [SKILL("Secret Language", "Thieves' Tongue"), SKILL("Secret Signs", "Thief")], 1),
       ],
     },
     talentAdvances: {
       required: [],
       groups: [
-        OR([TALENT("Alley Cat"), TALENT("Streetwise")], 1),
-        OR([TALENT("Super Numerate"), TALENT("Trapfinder")], 1),
+        OR("alley_cat_or_streetwise", [TALENT("Alley Cat"), TALENT("Streetwise")], 1),
+        OR("super_numerate_or_trapfinder", [TALENT("Super Numerate"), TALENT("Trapfinder")], 1),
       ],
     },
   },
@@ -49,14 +49,14 @@ export const CLASS_CRIMINAL: (BasicCareer | AdvancedCareer)[] = [
         SKILL("Swim"),
       ],
       groups: [
-        OR([SKILL("Gossip"), SKILL("Secret Language", "Thieves' Tongue")], 1),
-        OR([SKILL("Speak Language", "Breton"), SKILL("Speak Language", "Kislevian"), SKILL("Secret Signs", "Thief")], 1),
+        OR("gossip_or_secret_language", [SKILL("Gossip"), SKILL("Secret Language", "Thieves' Tongue")], 1),
+        OR("speak_language_or_secret_signs", [SKILL("Speak Language", "Breton"), SKILL("Speak Language", "Kislevian"), SKILL("Secret Signs", "Thief")], 1),
       ],
     },
     talentAdvances: {
       required: [],
       groups: [
-        OR([TALENT("Dealmaker"), TALENT("Streetwise")], 1),
+        OR("dealmaker_or_streetwise", [TALENT("Dealmaker"), TALENT("Streetwise")], 1),
       ],
     },
   },
@@ -76,7 +76,7 @@ export const CLASS_CRIMINAL: (BasicCareer | AdvancedCareer)[] = [
         SKILL("Silent Move"),
       ],
       groups: [
-        OR([SKILL("Gossip"), SKILL("Haggle")], 1),
+        OR("gossip_or_haggle", [SKILL("Gossip"), SKILL("Haggle")], 1),
       ],
     },
     talentAdvances: {
@@ -85,7 +85,7 @@ export const CLASS_CRIMINAL: (BasicCareer | AdvancedCareer)[] = [
         TALENT("Resistance to Disease"),
       ],
       groups: [
-        OR([TALENT("Streetwise"), TALENT("Strongminded")], 1),
+        OR("streetwise_or_strongminded", [TALENT("Streetwise"), TALENT("Strongminded")], 1),
       ],
     },
   },
