@@ -4,15 +4,15 @@ import type { Choice, PickGroup } from "./_types";
 export const SKILL = (name: string, spec?: string): Choice => ({ name, spec });
 export const TALENT = (name: string, spec?: string): Choice => ({ name, spec });
 
-export const OR = (options: Choice[], pick = 1): PickGroup => ({ options, pick });
+export const OR = (groupId: string, options: Choice[], requiredCount = 1): PickGroup => ({ groupId, options, requiredCount });
 
 // You can define tiny "snippets" to reuse, but don't compose them invisibly.
 // For example, a frequently reused OR:
-export const OR_AnimalCare_or_Charm = OR([SKILL("Animal Care"), SKILL("Charm")], 1);
+export const OR_AnimalCare_or_Charm = OR("animal_care_or_charm", [SKILL("Animal Care"), SKILL("Charm")], 1);
 
 // ✅ Added validation helpers
 export const validatePickGroup = (g: PickGroup): boolean =>
-  g.pick > 0 && g.pick <= g.options.length;
+  g.requiredCount > 0 && g.requiredCount <= g.options.length;
 
 // ✅ Added common WFRP patterns
 export const COMMON_KNOWLEDGE = (region: string) => SKILL("Common Knowledge", region);
@@ -23,6 +23,6 @@ export const SECRET_LANGUAGE = (language: string) => SKILL("Secret Language", la
 export const SECRET_SIGNS = (signs: string) => SKILL("Secret Signs", signs);
 
 // ✅ Frequently reused OR patterns
-export const OR_Charm_or_Intimidate = OR([SKILL("Charm"), SKILL("Intimidate")]);
+export const OR_Charm_or_Intimidate = OR("charm_or_intimidate", [SKILL("Charm"), SKILL("Intimidate")]);
 export const OR_Academic_or_Common = (field: string) => 
-  OR([ACADEMIC_KNOWLEDGE(field), COMMON_KNOWLEDGE(field)]);
+  OR(`academic_or_common_${field.toLowerCase().replace(/\s+/g, '_')}`, [ACADEMIC_KNOWLEDGE(field), COMMON_KNOWLEDGE(field)]);

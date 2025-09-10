@@ -16,15 +16,15 @@ export const CLASS_RANGER: (BasicCareer | AdvancedCareer)[] = [
         SKILL("Search"),
       ],
       groups: [
-        OR([SKILL("Concealment"), SKILL("Set Trap")], 1),
-        OR([SKILL("Animal Care"), SKILL("Navigation")], 1),
+        OR("concealment_or_set_trap", [SKILL("Concealment"), SKILL("Set Trap")], 1),
+        OR("animal_care_or_navigation", [SKILL("Animal Care"), SKILL("Navigation")], 1),
       ],
     },
     talentAdvances: {
       required: [],
       groups: [
-        OR([TALENT("Excellent Vision"), TALENT("Marksman")], 1),
-        OR([TALENT("Orientation"), TALENT("Very Resilient")], 1),
+        OR("excellent_vision_or_marksman", [TALENT("Excellent Vision"), TALENT("Marksman")], 1),
+        OR("orientation_or_very_resilient", [TALENT("Orientation"), TALENT("Very Resilient")], 1),
       ],
     },
   },
