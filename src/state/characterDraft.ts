@@ -84,14 +84,16 @@ export type Draft = {
   xpTotal: number;
   xpSpent: number;
   createdAt: string;
-  hasRolled?: boolean;
 
   careerEntryChoices?: {
     skillChoices: Record<number, Choice[]>;
     talentChoices: Record<number, Choice[]>;
   };
-  firstBasicGrantsApplied?: boolean;
-  hasTakenFirstBasicGrants?: boolean;
+  
+  // ✅ Updated flag naming to match spec (removed old properties)
+  flags?: {
+    grantsAppliedAtCreation?: boolean;
+  };
 
   // ✅ Roll provenance (for "d10 → 7 → 11 Wounds" display)
   lastGeneration?: LastGeneration;
@@ -106,6 +108,7 @@ export type Draft = {
 // Extended state interface with advancement actions
 type DraftState = {
   draft: Draft;
+  hasRolled: boolean; // ✅ Top-level property (not in draft)
   setRace: (id: string) => void;
   setCareer: (id: string) => void;
   setStat: (k: StatKey, v: number) => void;
@@ -114,13 +117,12 @@ type DraftState = {
   setName: (n: string) => void;
   reset: () => void;
   exportJSON: () => string;
-
   setCareerEntryChoices: (cs: {
     skillChoices: Record<number, Choice[]>;
     talentChoices: Record<number, Choice[]>;
   }) => void;
-  applyCareerEntryGrants: () => void;
-
+  applyCareerEntryGrants: () => { ok: boolean; issues?: { code: string; message: string }[] };
+  
   // ✅ Advancement actions
   purchaseCharacteristicAdvance: (key: StatKey | 'attacks' | 'wounds' | 'magic') => GuardResult;
   purchaseSkillAdvance: (skillId: string, targetLevel: number) => GuardResult;
@@ -192,8 +194,9 @@ const mapToAdvancementKey = (key: StatKey | 'attacks' | 'wounds' | 'magic'): str
 };
 
 // ---------- Store ----------
-export const useDraft = create<DraftState>((set, get) => ({
+export const useDraft = create<DraftState>()((set, get) => ({
   draft: createEmptyDraft(),
+  hasRolled: false, // ✅ Initialize at top level
 
   // ✅ Clear roll provenance on race change
   setRace: (raceId) => {
@@ -203,11 +206,11 @@ export const useDraft = create<DraftState>((set, get) => ({
         draft: {
           ...s.draft,
           raceId,
-          hasRolled: false,
           // Clear wounds/fate and roll provenance
           derived: { ...nextDerived, wounds: 0, fate: 0 },
           lastGeneration: undefined, // ✅ Clear provenance
         },
+        hasRolled: false, // ✅ Reset at top level
       };
     });
   },
@@ -217,7 +220,7 @@ export const useDraft = create<DraftState>((set, get) => ({
       const c = getCareerById(careerId); // ✅ Uses careers barrel
       const magicFloor = c && requiresMagicFloor(c) ? c.magicFloor : 0;
       const nextDerived = calcDerived(s.draft.stats, s.draft.raceId, magicFloor, s.draft.derived);
-      const preserved = s.draft.hasRolled
+      const preserved = s.hasRolled // ✅ Read from top-level
         ? { ...nextDerived, wounds: s.draft.derived.wounds, fate: s.draft.derived.fate }
         : nextDerived;
 
@@ -236,37 +239,51 @@ export const useDraft = create<DraftState>((set, get) => ({
   setCareerEntryChoices: (cs) =>
     set((s) => ({ draft: { ...s.draft, careerEntryChoices: cs } })),
 
-  applyCareerEntryGrants: () =>
-    set((s) => {
-      const { careerId, firstBasicGrantsApplied, hasTakenFirstBasicGrants, careerEntryChoices } = s.draft;
-      if (!careerId) return s;
-      
-      const career = getCareerById(careerId); // ✅ Uses careers barrel
-      if (!career) return s;
+  applyCareerEntryGrants: () => {
+    const s = get();
+    const { careerId, careerEntryChoices } = s.draft;
+    
+    // Check if already applied using new flag structure
+    const alreadyApplied = s.draft.flags?.grantsAppliedAtCreation ?? false;
+    
+    if (!careerId) {
+      return { ok: false, issues: [{ code: "NO_CAREER", message: "No career selected" }] };
+    }
+    
+    const career = getCareerById(careerId); // ✅ Uses careers barrel
+    if (!career) {
+      return { ok: false, issues: [{ code: "INVALID_CAREER", message: "Invalid career ID" }] };
+    }
 
-      const already = firstBasicGrantsApplied ?? hasTakenFirstBasicGrants ?? false;
-      if (!isBasicCareer(career) || already) return s;
+    if (!isBasicCareer(career) || alreadyApplied) {
+      return { ok: false, issues: [{ code: "ALREADY_APPLIED", message: "Grants already applied or not a basic career" }] };
+    }
 
-      const { grantSkills, grantTalents } = flattenGrants(
-        getEntryGrants(career),
-        careerEntryChoices ?? { skillChoices: {}, talentChoices: {} }
-      );
+    const { grantSkills, grantTalents } = flattenGrants(
+      getEntryGrants(career),
+      careerEntryChoices ?? { skillChoices: {}, talentChoices: {} }
+    );
 
-      return {
-        draft: {
-          ...s.draft,
-          skills: mergeChoices(s.draft.skills, grantSkills),
-          talents: mergeChoices(s.draft.talents, grantTalents),
-          firstBasicGrantsApplied: true,
+    set((state) => ({
+      draft: {
+        ...state.draft,
+        skills: mergeChoices(state.draft.skills, grantSkills),
+        talents: mergeChoices(state.draft.talents, grantTalents),
+        flags: {
+          ...state.draft.flags,
+          grantsAppliedAtCreation: true, // ✅ Use new flag name
         },
-      };
-    }),
+      },
+    }));
+
+    return { ok: true };
+  },
 
   setStat: (k, v) => {
     set((s) => {
       const stats: StatBlock = { ...s.draft.stats, [k]: v };
       const nextDerived = calcDerived(stats, s.draft.raceId, s.draft.magicFloor, s.draft.derived);
-      const preserved = s.draft.hasRolled
+      const preserved = s.hasRolled // ✅ Read from top-level
         ? { ...nextDerived, wounds: s.draft.derived.wounds, fate: s.draft.derived.fate }
         : nextDerived;
 
@@ -274,7 +291,7 @@ export const useDraft = create<DraftState>((set, get) => ({
     });
   },
 
-  // ✅ Enhanced rollStats with roll provenance tracking
+  // ✅ Enhanced rollStats with roll provenance tracking (keep your detailed version)
   rollStats: (raceId: string) => {
     import("../utils/dice")
       .then(({ rollCharacteristicsByRace }) => {
@@ -294,7 +311,6 @@ export const useDraft = create<DraftState>((set, get) => ({
 
           const nextDerived = calcDerived(stats, raceId, s.draft.magicFloor, s.draft.derived);
 
-          // ✅ Capture roll provenance for "d10 → 7 → 11 Wounds" display
           const lastGeneration: LastGeneration | undefined = rolled.rolls ? {
             rolls: {
               wounds: rolled.rolls.wounds,
@@ -308,12 +324,11 @@ export const useDraft = create<DraftState>((set, get) => ({
           return {
             draft: {
               ...s.draft,
-              raceId,
               stats,
               derived: { ...nextDerived, wounds: rolled.wounds, fate: rolled.fate },
-              hasRolled: true,
-              lastGeneration, // ✅ Store provenance
+              lastGeneration,
             },
+            hasRolled: true, // ✅ Set at top level
           };
         });
       })
@@ -323,19 +338,20 @@ export const useDraft = create<DraftState>((set, get) => ({
   },
 
   finalizeDerived: () => {
-    const d = get().draft;
+    const s = get();
+    const d = s.draft;
     const nextDerived = calcDerived(d.stats, d.raceId, d.magicFloor, d.derived);
-    const preserved = d.hasRolled
+    const preserved = s.hasRolled // ✅ Read from top-level
       ? { ...nextDerived, wounds: d.derived.wounds, fate: d.derived.fate }
       : nextDerived;
 
-    set((s) => ({ draft: { ...s.draft, derived: preserved } }));
+    set((state) => ({ draft: { ...state.draft, derived: preserved } }));
   },
 
   setName: (name) => set((s) => ({ draft: { ...s.draft, name } })),
 
   // ✅ Clear provenance on reset
-  reset: () => set({ draft: createEmptyDraft() }),
+  reset: () => set({ draft: createEmptyDraft(), hasRolled: false }),
 
   // ✅ Export JSON (could exclude lastGeneration for reproducible exports)
   exportJSON: () => {

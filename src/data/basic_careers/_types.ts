@@ -10,10 +10,11 @@ export type CharKey = "WS"|"BS"|"S"|"T"|"Ag"|"Int"|"WP"|"Fel";
 
 export interface Choice { name: string; spec?: string }
 
-// Groups represent "pick N from these options" (e.g., OR = pick: 1)
-export interface PickGroup {
-  pick: number;            // 1 for simple OR, >1 for "pick any two…"
-  options: Choice[];
+// ✅ NEW: Updated PickGroup schema with groupId and requiredCount
+export interface PickGroup<TRef = Choice> {
+  groupId: string;           // NEW stable id
+  requiredCount: number;     // NEW, replaces pick
+  options: TRef[];
 }
 
 export interface SkillBlock {

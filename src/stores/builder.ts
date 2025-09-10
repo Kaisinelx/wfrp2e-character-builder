@@ -25,17 +25,19 @@ interface Draft {
   skills: Choice[];
   talents: Choice[];
   careerEntryChoices?: {
-    skillChoices: Record<string, Choice[]>;
-    talentChoices: Record<string, Choice[]>;
+    skillChoices: Record<string, Choice[]>; // ✅ Changed to string keys (groupId)
+    talentChoices: Record<string, Choice[]>; // ✅ Changed to string keys (groupId)
   };
-  hasRolled: boolean;                    // ✅ Keep this here
-  hasAppliedFirstBasicGrants?: boolean;  // ✅ Keep this here
+  flags?: {
+    grantsAppliedAtCreation?: boolean; // ✅ Use standardized flag name
+  };
   createdAt: number;
   updatedAt: number;
 }
 
 interface BuilderState {
   draft: Draft;
+  hasRolled: boolean; // ✅ Keep at top level, not inside draft
   lastGeneration?: {
     rolls?: number[];
     at?: number;
@@ -57,8 +59,8 @@ interface BuilderState {
   setName: (name: string) => void;
   reset: () => void;
   setCareerEntryChoices: (choices: {
-    skillChoices: Record<string, Choice[]>;
-    talentChoices: Record<string, Choice[]>;
+    skillChoices: Record<string, Choice[]>; // ✅ Use groupId as keys
+    talentChoices: Record<string, Choice[]>; // ✅ Use groupId as keys
   }) => void;
   applyCareerEntryGrants: () => { ok: boolean; issues?: { code: string; message: string }[] };
 }
@@ -84,7 +86,6 @@ const createInitialDraft = (): Draft => ({
   },
   skills: [],
   talents: [],
-  hasRolled: false,  // ✅ Initialize this
   createdAt: Date.now(),
   updatedAt: Date.now(),
 });
@@ -121,6 +122,7 @@ export const useBuilder = create<BuilderState>()(
   persist(
     (set, get) => ({
       draft: createInitialDraft(),
+      hasRolled: false, // ✅ Top-level property
       _magicStart: 0,
       
       // Actions
@@ -131,8 +133,8 @@ export const useBuilder = create<BuilderState>()(
             ...state.draft, 
             raceId, 
             derived: newDerived,
-            hasRolled: false  // ✅ Reset hasRolled on race change
-          })
+          }),
+          hasRolled: false  // ✅ Reset hasRolled at top level
         };
       }),
       
@@ -174,10 +176,8 @@ export const useBuilder = create<BuilderState>()(
         // This would use your dice rolling utilities
         // For now just a placeholder that sets hasRolled
         set((state) => ({
-          draft: touch({
-            ...state.draft,
-            hasRolled: true
-          })
+          ...state,
+          hasRolled: true // ✅ Set at top level
         }));
       },
       
@@ -196,8 +196,8 @@ export const useBuilder = create<BuilderState>()(
           draft: touch({ 
             ...state.draft, 
             derived: newDerived,
-            hasRolled: true
           }),
+          hasRolled: true, // ✅ Set at top level
           lastGeneration
         };
       }),
@@ -220,6 +220,7 @@ export const useBuilder = create<BuilderState>()(
       
       reset: () => set({
         draft: createInitialDraft(),
+        hasRolled: false, // ✅ Reset at top level
         _magicStart: 0,
         lastGeneration: undefined
       }),
@@ -234,8 +235,8 @@ export const useBuilder = create<BuilderState>()(
       applyCareerEntryGrants: () => {
         const state = get();
         
-        // Check if grants were already applied
-        if (state.draft.hasAppliedFirstBasicGrants) {
+        // ✅ Check standardized flag
+        if (state.draft.flags?.grantsAppliedAtCreation) {
           return { 
             ok: false, 
             issues: [{ code: "ALREADY_APPLIED", message: "Career entry grants have already been applied" }] 
@@ -267,12 +268,12 @@ export const useBuilder = create<BuilderState>()(
           return list;
         };
 
-        // Process skill choices
+        // ✅ Process skill choices by groupId
         Object.values(state.draft.careerEntryChoices.skillChoices || {}).forEach(
           choices => choices.forEach(choice => addWithDedupe(newSkills, choice))
         );
 
-        // Process talent choices
+        // ✅ Process talent choices by groupId
         Object.values(state.draft.careerEntryChoices.talentChoices || {}).forEach(
           choices => choices.forEach(choice => addWithDedupe(newTalents, choice))
         );
@@ -283,7 +284,10 @@ export const useBuilder = create<BuilderState>()(
             ...state.draft,
             skills: newSkills,
             talents: newTalents,
-            hasAppliedFirstBasicGrants: true  // ✅ Set the flag on draft
+            flags: {
+              ...state.draft.flags,
+              grantsAppliedAtCreation: true // ✅ Set standardized flag
+            }
           })
         }));
         
@@ -294,6 +298,7 @@ export const useBuilder = create<BuilderState>()(
       name: 'wfrp2e-character-draft-v1',
       partialize: (state) => ({
         draft: state.draft,
+        hasRolled: state.hasRolled, // ✅ Include in persistence
         lastGeneration: state.lastGeneration,
         _magicStart: state._magicStart
       })
@@ -306,5 +311,5 @@ export const useDraft = useBuilder;
 
 // Selector helpers
 export const useDraftValue = () => useBuilder(state => state.draft);
-export const useHasRolled = () => useBuilder(state => state.draft.hasRolled);
-export const useGrantsApplied = () => useBuilder(state => state.draft.hasAppliedFirstBasicGrants);
+export const useHasRolled = () => useBuilder(state => state.hasRolled); // ✅ Read from top level
+export const useGrantsApplied = () => useBuilder(state => state.draft.flags?.grantsAppliedAtCreation);

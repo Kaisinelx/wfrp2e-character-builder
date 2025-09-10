@@ -19,7 +19,7 @@ export const CLASS_ACADEMIC: Career[] = [
         SKILL("Perception"),
       ],
       groups: [
-        OR([SKILL("Animal Care"), SKILL("Charm")], 1), // your example
+        { groupId: "acad-01", requiredCount: 1, options: [SKILL("Animal Care"), SKILL("Charm")] }, // ✅ Updated from OR helper
       ],
     },
     talentAdvances: {
@@ -28,7 +28,7 @@ export const CLASS_ACADEMIC: Career[] = [
         TALENT("Public Speaking"),
       ],
       groups: [
-        OR([TALENT("Seasoned Traveller"), TALENT("Suave")], 1), // pick one
+        { groupId: "acad-02", requiredCount: 1, options: [TALENT("Seasoned Traveller"), TALENT("Suave")] }, // ✅ Updated from OR helper
       ],
     },
   },
