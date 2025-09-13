@@ -1,12 +1,12 @@
 // src/data/careers/_fragments.ts
-import type { Choice, PickGroup } from "./_types";
+import type { Choice, PickGroup } from "../_types";
 
 export const SKILL = (name: string, spec?: string): Choice => ({ name, spec });
 export const TALENT = (name: string, spec?: string): Choice => ({ name, spec });
 
 export const OR = (groupId: string, options: Choice[], requiredCount = 1): PickGroup => ({ groupId, options, requiredCount });
 
-// You can define tiny "snippets" to reuse, but don't compose them invisibly.
+// You can define tiny "snippets" to reu  se, but don't compose them invisibly.
 // For example, a frequently reused OR:
 export const OR_AnimalCare_or_Charm = OR("animal_care_or_charm", [SKILL("Animal Care"), SKILL("Charm")], 1);
 

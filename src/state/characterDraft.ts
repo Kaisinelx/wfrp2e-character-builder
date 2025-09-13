@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import { getCareerById } from "../data/basic_careers";
-import { isBasicCareer, requiresMagicFloor } from "../data/basic_careers/_types";
+import { getCareerById } from "../data/Careers/basic_careers";
+import { isBasicCareer, requiresMagicFloor } from "../data/Careers/_types";
 import { getEntryGrants, flattenGrants } from "../utils/careerValidation";
 import { calcDerived } from "../utils/derived";
 

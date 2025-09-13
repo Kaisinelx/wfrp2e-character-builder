@@ -3,7 +3,7 @@ import { rollD10, rollCharacteristicsByRace } from './utils/dice';
 import CharacterWizard from './components/CharacterWizard';
 import { useDraft, draftActions } from './state/CharacterDraftContext';
 import { WFRP_RACES } from './data/races';
-import { getCareerById, BASIC_CAREERS } from './data/basic_careers';
+import { getCareerById, BASIC_CAREERS } from './data/Careers/basic_careers';
 // Remove the problematic ADVANCED_CAREERS import for now
 // import { ADVANCED_CAREERS } from './data/advanced_careers';
 

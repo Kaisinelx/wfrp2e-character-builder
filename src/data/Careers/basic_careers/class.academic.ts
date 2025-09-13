@@ -1,5 +1,5 @@
 // src/data/careers/class.academic.ts
-import type { Career } from "./_types";
+import type { Career } from "../_types";
 import { SKILL, TALENT} from "./_fragments";
 
 export const CLASS_ACADEMIC: Career[] = [
@@ -19,7 +19,11 @@ export const CLASS_ACADEMIC: Career[] = [
         SKILL("Perception"),
       ],
       groups: [
-        { groupId: "acad-01", requiredCount: 1, options: [SKILL("Animal Care"), SKILL("Charm")] }, // ✅ Updated from OR helper
+        { 
+          groupId: "acad-mediator-skills-01", 
+          requiredCount: 1, 
+          options: [SKILL("Animal Care"), SKILL("Charm")] 
+        },
       ],
     },
     talentAdvances: {
@@ -28,7 +32,11 @@ export const CLASS_ACADEMIC: Career[] = [
         TALENT("Public Speaking"),
       ],
       groups: [
-        { groupId: "acad-02", requiredCount: 1, options: [TALENT("Seasoned Traveller"), TALENT("Suave")] }, // ✅ Updated from OR helper
+        { 
+          groupId: "acad-mediator-talents-01", 
+          requiredCount: 1, 
+          options: [TALENT("Seasoned Traveller"), TALENT("Suave")] 
+        },
       ],
     },
   },

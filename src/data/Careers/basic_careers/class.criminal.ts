@@ -1,4 +1,4 @@
-import type { BasicCareer, AdvancedCareer } from "./_types";
+import type { BasicCareer, AdvancedCareer } from "../_types";
 import { SKILL, TALENT, OR } from "./_fragments";
 
 export const CLASS_CRIMINAL: (BasicCareer | AdvancedCareer)[] = [

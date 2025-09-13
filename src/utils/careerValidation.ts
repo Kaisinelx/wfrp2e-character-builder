@@ -1,4 +1,4 @@
-import type { Career, Choice, PickGroup } from '../data/basic_careers/_types';
+import type { Career, Choice, PickGroup } from '../data/Careers/_types';
 
 export type CareerChoices = {
   skillChoices: Record<string, Choice[]>;  // ✅ Changed from number to string (groupId)

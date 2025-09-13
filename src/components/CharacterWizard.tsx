@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { WFRP_RACES } from '../data/races';
-import { BASIC_CAREERS, ADVANCED_CAREERS } from '../data/basic_careers';
-import { useDraft } from '../state/characterDraft';
-import { useBuilder } from '../stores/builder'; // ✅ Import for hasRolled and choices
+import { BASIC_CAREERS, ADVANCED_CAREERS } from '../data/Careers/basic_careers';
+import { useBuilder } from '../stores/builder';
 import CareerEntryGrantsStep from './CareerEntryGrantsStep';
 
 type WizardStep = 'race' | 'career' | 'careerEntryGrants' | 'stats' | 'name' | 'summary';
@@ -18,36 +17,15 @@ export default function CharacterWizard({ onComplete, onCancel }: WizardProps) {
   const [currentStep, setCurrentStep] = useState<WizardStep>('race');
   
   // Zustand store access
-  const draft = useDraft((s) => s.draft);
-  const hasRolled = useBuilder((s) => s.hasRolled); // ✅ Read from builder store
-  const builderState = useBuilder((s) => s); // Get full builder state
-  const setRace = useDraft((s) => s.setRace);
-  const setCareer = useDraft((s) => s.setCareer);
-  const rollStats = useDraft((s) => s.rollStats);
-  const setName = useDraft((s) => s.setName);
-  const reset = useDraft((s) => s.reset);
-  const finalizeDerived = useDraft((s) => s.finalizeDerived);
-  
-  // Check if all career entry grants are satisfied
-  const careerEntryGrantsCompleted = () => {
-    if (!draft.careerId) return false;
-    const career = [...BASIC_CAREERS, ...ADVANCED_CAREERS].find(c => c.id === draft.careerId);
-    if (!career) return false;
-    
-    const allGroups = [
-      ...(career.skillAdvances.groups || []),
-      ...(career.talentAdvances.groups || [])
-    ];
-    
-    if (allGroups.length === 0) return true; // No choices needed
-    
-    // Check if all groups have sufficient choices
-    return allGroups.every(group => {
-      // Access the choices from builder state - adjust property name as needed
-      const choices = (builderState as any).choices?.[group.groupId] || [];
-      return choices.length >= group.requiredCount;
-    });
-  };
+  const draft = useBuilder((s) => s.draft);
+ const hasRolled = useBuilder((s) => s.hasRolled);
+ const setRace = useBuilder((s) => s.setRace);
+ const setCareer = useBuilder((s) => s.setCareer);
+ const rollStats = useBuilder((s) => s.rollStats);
+ const setName = useBuilder((s) => s.setName);
+ const reset = useBuilder((s) => s.reset);
+ const finalizeDerived = useBuilder((s) => s.finalizeDerived);
+
   
   const steps: WizardStep[] = ['race', 'career', 'careerEntryGrants', 'stats', 'name', 'summary'];
   const currentStepIndex = steps.indexOf(currentStep);
@@ -183,20 +161,10 @@ export default function CharacterWizard({ onComplete, onCancel }: WizardProps) {
     </div>
   );
 
+  // ✅ FIXED: Remove duplicate navigation - let step handle its own flow
   const CareerEntryGrantsStepWrapper = () => (
     <div className="wizard-step">
-     <CareerEntryGrantsStep onNext={nextStep} onPrev={prevStep} />
-
-      <div className="flex justify-between mt-6">
-        <button onClick={prevStep} className="btn-secondary">← Back</button>
-        <button 
-          onClick={nextStep} 
-          disabled={!careerEntryGrantsCompleted()} 
-          className="btn-primary disabled:opacity-50"
-        >
-          Next: Roll Stats →
-        </button>
-      </div>
+      <CareerEntryGrantsStep onNext={nextStep} onPrev={prevStep} />
     </div>
   );
 
@@ -216,14 +184,14 @@ export default function CharacterWizard({ onComplete, onCancel }: WizardProps) {
         <>
           <div className="grid grid-cols-4 md:grid-cols-8 gap-3 mb-6">
             {[
-              ['WS', draft.stats.weaponSkill],
-              ['BS', draft.stats.ballisticSkill],
-              ['S', draft.stats.strength],
-              ['T', draft.stats.toughness],
-              ['Ag', draft.stats.agility],
-              ['Int', draft.stats.intelligence],
-              ['WP', draft.stats.willPower],
-              ['Fel', draft.stats.fellowship],
+              ['WS', draft.stats.WS],
+              ['BS', draft.stats.BS],
+              ['S', draft.stats.S],
+              ['T', draft.stats.T],
+              ['Ag', draft.stats.Ag],
+              ['Int', draft.stats.Int],
+              ['WP', draft.stats.WP],
+              ['Fel', draft.stats.Fel],
             ].map(([k, v]) => (
               <div key={k} className="card-gothic text-center p-3">
                 <div className="text-sm font-semibold text-[#8b1538] mb-1">{k}</div>
@@ -313,14 +281,14 @@ export default function CharacterWizard({ onComplete, onCancel }: WizardProps) {
 
         <div className="grid grid-cols-4 md:grid-cols-8 gap-2 mb-6">
           {[
-            ['WS', draft.stats.weaponSkill],
-            ['BS', draft.stats.ballisticSkill],
-            ['S', draft.stats.strength],
-            ['T', draft.stats.toughness],
-            ['Ag', draft.stats.agility],
-            ['Int', draft.stats.intelligence],
-            ['WP', draft.stats.willPower],
-            ['Fel', draft.stats.fellowship],
+            ['WS', draft.stats.WS],
+            ['BS', draft.stats.BS],
+            ['S', draft.stats.S],
+            ['T', draft.stats.T],
+            ['Ag', draft.stats.Ag],
+            ['Int', draft.stats.Int],
+            ['WP', draft.stats.WP],
+            ['Fel', draft.stats.Fel],
           ].map(([k, v]) => (
             <div key={k} className="card-gothic text-center p-2">
               <div className="text-xs font-semibold text-[#8b1538]">{k}</div>

@@ -12,8 +12,8 @@ export interface Choice { name: string; spec?: string }
 
 // ✅ NEW: Updated PickGroup schema with groupId and requiredCount
 export interface PickGroup<TRef = Choice> {
-  groupId: string;           // NEW stable id
-  requiredCount: number;     // NEW, replaces pick
+  groupId: string;           // stable identifier
+  requiredCount: number;     // replaces pick/count
   options: TRef[];
 }
 

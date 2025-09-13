@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useDraft } from '../state/characterDraft';
-import { getCareerById } from '../data/basic_careers';
+import { useBuilder } from '../stores/builder';
+import { getCareerById } from '../data/Careers/basic_careers';
 
 // Local type to handle optional groupId in validation issues
 type UIValidationIssue = { code: string; message: string; groupId?: string };
@@ -16,9 +16,9 @@ interface Props {
 }
 
 const CareerEntryGrantsStep: React.FC<Props> = ({ onNext, onPrev }) => {
-  const draft = useDraft((s) => s.draft);
-  const setCareerEntryChoices = useDraft((s) => s.setCareerEntryChoices);
-  const applyCareerEntryGrants = useDraft((s) => s.applyCareerEntryGrants);
+  const draft = useBuilder((s) => s.draft);
+  const setCareerEntryChoices = useBuilder((s) => s.setCareerEntryChoices);
+  const applyCareerEntryGrants = useBuilder((s) => s.applyCareerEntryGrants);
   
   const career = draft.careerId ? getCareerById(draft.careerId) : null;
   
@@ -30,10 +30,7 @@ const CareerEntryGrantsStep: React.FC<Props> = ({ onNext, onPrev }) => {
   }
 
   // Use standardized flag name
-  const hasAppliedGrants =
-  (draft as any).flags?.grantsAppliedAtCreation ??
-  (draft as any).hasAppliedFirstBasicGrants ??
-  false;
+  const hasAppliedGrants = draft.flags?.grantsAppliedAtCreation ?? false;
 
   if (hasAppliedGrants) {
     return (
@@ -92,127 +89,142 @@ const CareerEntryGrantsStep: React.FC<Props> = ({ onNext, onPrev }) => {
       skillChoices: Object.fromEntries(
         (career.skillAdvances.groups ?? []).map(g => [
           g.groupId, 
-          (picks[g.groupId] ?? []).map(name => ({ name }))
+          (picks[g.groupId] || []).map(name => ({ name }))
         ])
       ),
       talentChoices: Object.fromEntries(
         (career.talentAdvances.groups ?? []).map(g => [
-          g.groupId, 
-          (picks[g.groupId] ?? []).map(name => ({ name }))
+          g.groupId,
+          (picks[g.groupId] || []).map(name => ({ name }))
         ])
       )
     };
-    
+
+    // Set choices first
     setCareerEntryChoices(choices);
+    
+    // Then apply grants
     const result = applyCareerEntryGrants();
     
     if (!result.ok) {
-      // Handle optional groupId in validation issues
-      const issues: UIValidationIssue[] = (result.issues ?? []) as UIValidationIssue[];
-      setErrors(issues);
+     setErrors(result.issues || []);
       return;
     }
     
+    // Success - move to next step
     onNext();
   };
 
   return (
     <div className="career-entry-grants">
-      <h2>Career Entry Grants: {career.name}</h2>
+      <h2>Career Entry: {career.name}</h2>
       
-      {/* Show all validation errors */}
-      {errors.length > 0 && (
-        <div className="error">
-          <ul className="error-list">
-            {errors.map((issue, i) => (
-              <li key={i} className="error-item">
-                {issue.groupId ? <strong>{issue.groupId}: </strong> : null}
-                {issue.message}
-              </li>
+      {/* Required Skills - always granted */}
+      {career.skillAdvances.required.length > 0 && (
+        <div className="mb-4">
+          <h3>Required Skills (automatically granted):</h3>
+          <ul>
+            {career.skillAdvances.required.map((skill, i) => (
+              <li key={i}>{skill.name}{skill.spec ? ` (${skill.spec})` : ''}</li>
             ))}
           </ul>
         </div>
       )}
-      
-      <section className="required-section">
-        <h3>Required Skills (Auto-Applied):</h3>
-        <ul>
-          {career.skillAdvances.required.map(skill => (
-            <li key={skill.name}>{skill.name}</li>
-          ))}
-        </ul>
-        
-        <h3>Required Talents (Auto-Applied):</h3>
-        <ul>
-          {career.talentAdvances.required.map(talent => (
-            <li key={talent.name}>{talent.name}</li>
-          ))}
-        </ul>
-      </section>
-      
-      <section className="or-groups">
-        {/* Skill OR groups */}
-        {career.skillAdvances.groups?.map(group => (
-          <div key={group.groupId} className="or-group">
-            <h3>Choose {group.requiredCount} Skill{group.requiredCount > 1 ? 's' : ''}:</h3>
-            <div className="options">
-              {group.options.map(option => {
-                const isSelected = (picks[group.groupId] || []).includes(option.name);
-                const currentCount = (picks[group.groupId] || []).length;
-                const isDisabled = !isSelected && currentCount >= group.requiredCount;
-                
-                return (
-                  <label key={option.name} className={`option ${isDisabled ? 'disabled' : ''}`}>
-                    <input 
-                      type="checkbox" 
-                      checked={isSelected}
-                      disabled={isDisabled}
-                      onChange={() => toggleOption(group.groupId, option.name)}
-                    />
-                    {option.name}
-                  </label>
-                );
-              })}
-            </div>
-            <p className="selection-count">
-              Selected: {(picks[group.groupId] || []).length} / {group.requiredCount}
-            </p>
+
+      {/* Required Talents - always granted */}
+      {career.talentAdvances.required.length > 0 && (
+        <div className="mb-4">
+          <h3>Required Talents (automatically granted):</h3>
+          <ul>
+            {career.talentAdvances.required.map((talent, i) => (
+              <li key={i}>{talent.name}{talent.spec ? ` (${talent.spec})` : ''}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Skill Choice Groups */}
+      {career.skillAdvances.groups?.map(group => (
+        <div key={group.groupId} className="mb-4 p-4 border rounded">
+          <h3>Choose {group.requiredCount} skill(s):</h3>
+          <div className="grid grid-cols-2 gap-2">
+            {group.options.map((option, i) => {
+              const optionKey = `${option.name}${option.spec ? `-${option.spec}` : ''}`;
+              const isSelected = (picks[group.groupId] || []).includes(optionKey);
+              const canSelect = !isSelected && (picks[group.groupId] || []).length < group.requiredCount;
+              
+              return (
+                <button
+                  key={i}
+                  onClick={() => toggleOption(group.groupId, optionKey)}
+                  disabled={!isSelected && !canSelect}
+                  className={`p-2 border rounded text-left ${
+                    isSelected ? 'bg-green-200 border-green-500' :
+                    canSelect ? 'bg-white border-gray-300 hover:bg-gray-50' :
+                    'bg-gray-100 border-gray-200 text-gray-400'
+                  }`}
+                >
+                  {option.name}{option.spec ? ` (${option.spec})` : ''}
+                  {isSelected && ' ✓'}
+                </button>
+              );
+            })}
           </div>
-        ))}
-        
-        {/* Talent OR groups */}
-        {career.talentAdvances.groups?.map(group => (
-          <div key={group.groupId} className="or-group">
-            <h3>Choose {group.requiredCount} Talent{group.requiredCount > 1 ? 's' : ''}:</h3>
-            <div className="options">
-              {group.options.map(option => {
-                const isSelected = (picks[group.groupId] || []).includes(option.name);
-                const currentCount = (picks[group.groupId] || []).length;
-                const isDisabled = !isSelected && currentCount >= group.requiredCount;
-                
-                return (
-                  <label key={option.name} className={`option ${isDisabled ? 'disabled' : ''}`}>
-                    <input 
-                      type="checkbox" 
-                      checked={isSelected}
-                      disabled={isDisabled}
-                      onChange={() => toggleOption(group.groupId, option.name)}
-                    />
-                    {option.name}
-                  </label>
-                );
-              })}
+          {errors.some(e => e.groupId === group.groupId) && (
+            <div className="text-red-600 text-sm mt-2">
+              {errors.find(e => e.groupId === group.groupId)?.message}
             </div>
-            <p className="selection-count">
-              Selected: {(picks[group.groupId] || []).length} / {group.requiredCount}
-            </p>
+          )}
+        </div>
+      ))}
+
+      {/* Talent Choice Groups */}
+      {career.talentAdvances.groups?.map(group => (
+        <div key={group.groupId} className="mb-4 p-4 border rounded">
+          <h3>Choose {group.requiredCount} talent(s):</h3>
+          <div className="grid grid-cols-2 gap-2">
+            {group.options.map((option, i) => {
+              const optionKey = `${option.name}${option.spec ? `-${option.spec}` : ''}`;
+              const isSelected = (picks[group.groupId] || []).includes(optionKey);
+              const canSelect = !isSelected && (picks[group.groupId] || []).length < group.requiredCount;
+              
+              return (
+                <button
+                  key={i}
+                  onClick={() => toggleOption(group.groupId, optionKey)}
+                  disabled={!isSelected && !canSelect}
+                  className={`p-2 border rounded text-left ${
+                    isSelected ? 'bg-green-200 border-green-500' :
+                    canSelect ? 'bg-white border-gray-300 hover:bg-gray-50' :
+                    'bg-gray-100 border-gray-200 text-gray-400'
+                  }`}
+                >
+                  {option.name}{option.spec ? ` (${option.spec})` : ''}
+                  {isSelected && ' ✓'}
+                </button>
+              );
+            })}
           </div>
-        ))}
-      </section>
-      
+          {errors.some(e => e.groupId === group.groupId) && (
+            <div className="text-red-600 text-sm mt-2">
+              {errors.find(e => e.groupId === group.groupId)?.message}
+            </div>
+          )}
+        </div>
+      ))}
+
+      {/* General errors */}
+      {errors.filter(e => !e.groupId).map((error, i) => (
+        <div key={i} className="text-red-600 mb-2">{error.message}</div>
+      ))}
+
       <div className="wizard-nav">
         <button onClick={onPrev}>Previous</button>
-        <button onClick={handleApply} disabled={!isValid()}>
+        <button 
+          onClick={handleApply}
+          disabled={!isValid()}
+          className={!isValid() ? 'opacity-50 cursor-not-allowed' : ''}
+        >
           Apply & Continue
         </button>
       </div>

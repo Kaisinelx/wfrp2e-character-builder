@@ -1,6 +1,6 @@
 import { useDraft } from '../state/CharacterDraftContext';
 import { WFRP_RACES } from '../data/races';
-import { BASIC_CAREERS } from '../data/basic_careers/';
+import { BASIC_CAREERS } from '../data/Careers/basic_careers';
 
 export default function CharacterSheet() {
   const { draft: char } = useDraft();

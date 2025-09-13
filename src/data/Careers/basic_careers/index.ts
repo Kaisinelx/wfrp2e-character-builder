@@ -1,4 +1,4 @@
-import type { Career, CareerClass } from "./_types";
+import type { Career, CareerClass } from "../_types";
 
 import { CLASS_ACADEMIC } from "./class.academic";
 import { CLASS_WARRIOR } from "./class.warrior"; 
@@ -36,4 +36,4 @@ export const getMagicalCareers = () =>
 export const getCareersByTier = (tier: 1 | 2 | 3) => 
   ADVANCED_CAREERS.filter(c => c.type === "advanced" && c.tier === tier);
 
-export type { Career, CareerClass } from "./_types";
+export type { Career, CareerClass } from "../_types";

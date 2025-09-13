@@ -1,5 +1,5 @@
 // src/data/careers/class.warrior.ts
-import type { Career } from "./_types";
+import type { Career } from "../_types";
 import { SKILL, TALENT } from "./_fragments";
 
 export const CLASS_WARRIOR: Career[] = [
